@@ -1,0 +1,30 @@
+<!--
+    IMPORTANT:
+    - Policy fragment are included as-is whenever they are referenced.
+    - If using variables. Ensure they are setup before use.
+    - Copy and paste your code here or simply start coding
+-->
+<fragment>
+	<set-variable name="subscriptionConfig" value="@("{\"id\":\"" + context.Subscription.Key + "\",\"calls\":{{DefaultCalls}},\"renewalPeriod\":{{DefaultRenewalPeriod}}}")" />
+	<cache-lookup-value key="@("ratelimit-" + context.Subscription.Key)" default-value="" variable-name="subscriptionConfigCached" />
+	<choose>
+		<when condition="@(!String.IsNullOrEmpty((string)context.Variables["subscriptionConfigCached"]))">
+			<set-variable name="subscriptionConfig" value="@((string)context.Variables["subscriptionConfigCached"])" />
+		</when>
+		<otherwise>
+			<send-request mode="new" response-variable-name="subscriptionConfigLookup" timeout="60" ignore-error="true">
+				<set-url>{{SubscriptionConfigLookupUrl}}</set-url>
+				<set-method>GET</set-method>
+			</send-request>
+			<set-variable name="subscriptionConfigResponse" value="@(((IResponse)context.Variables["subscriptionConfigLookup"]).Body.As<string>())" />
+			<choose>
+				<when condition="@(!String.IsNullOrEmpty((string)context.Variables["subscriptionConfigResponse"]))">
+					<set-variable name="subscriptionConfig" value="@((string)context.Variables["subscriptionConfigResponse"])" />
+				</when>
+				<otherwise />
+			</choose>
+		</otherwise>
+	</choose>
+	<cache-store-value key="@("ratelimit-" + context.Subscription.Key)" value="@((string)context.Variables["subscriptionConfig"])" duration="60" />
+	<rate-limit-by-key calls="@((int)JObject.Parse((string)context.Variables["subscriptionConfig"])["calls"])" renewal-period="@((int)JObject.Parse((string)context.Variables["subscriptionConfig"])["renewalPeriod"])" counter-key="@(context.Subscription.Key)" />
+</fragment>

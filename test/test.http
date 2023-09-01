@@ -1,0 +1,26 @@
+###
+
+GET https://replaceWithUriOfAzureFunction/api/SubscriptionConfigLookup?code=replaceWithFunctionKey&sub=replaceWithSubscriptionIdForCustomer1
+
+###
+
+POST https://replaceWithUriOfAPIM/echo/resource
+Content-Type: application/json
+Ocp-Apim-Subscription-Key: replaceWithSubscriptionIdForCustomer1
+
+{
+    "one": "1",
+    "two": "2"
+}
+
+
+###
+
+POST https://replaceWithUriOfAPIM/echo/resource
+Content-Type: application/json
+Ocp-Apim-Subscription-Key: replaceWithSubscriptionIdForCustomer2
+
+{
+    "one": "1",
+    "two": "2"
+}
